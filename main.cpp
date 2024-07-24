@@ -17,7 +17,7 @@ int getDifficultyChoice(sf::RenderWindow& window, sf::Font& font) {
     window.display();
 
     int choice = 0;
-    sf::Event event;
+    sf::Event event{};
     while (window.waitEvent(event)) {
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::Num1) {
