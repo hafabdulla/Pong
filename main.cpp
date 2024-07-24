@@ -8,30 +8,43 @@
 #include <string>
 
 // Function to display difficulty menu and get user choice
-int getDifficultyChoice(sf::RenderWindow& window, sf::Font& font) {
+int getDifficultyChoice(sf::RenderWindow& window, sf::Font& font)
+{
     sf::Text menuText("Select Difficulty:\n1. Easy\n2. Medium\n3. Hard", font, 30);
     menuText.setPosition(100, 200);
 
-    window.clear();
-    window.draw(menuText);
-    window.display();
+    sf::Text errorText("", font, 20);
+    errorText.setFillColor(sf::Color::White);
+    errorText.setPosition(100, 400);
 
     int choice = 0;
     sf::Event event{};
-    while (window.waitEvent(event)) {
-        if (event.type == sf::Event::KeyPressed) {
-            if (event.key.code == sf::Keyboard::Num1) {
-                choice = 1;
-                break;
-            } else if (event.key.code == sf::Keyboard::Num2) {
-                choice = 2;
-                break;
-            } else if (event.key.code == sf::Keyboard::Num3) {
-                choice = 3;
-                break;
+
+        window.clear();
+        window.draw(menuText);
+        window.draw(errorText);
+        window.display();
+
+        while (window.waitEvent(event)) {
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Num1) {
+                    choice = 1;
+                    break;
+                } else if (event.key.code == sf::Keyboard::Num2) {
+                    choice = 2;
+                    break;
+                } else if (event.key.code == sf::Keyboard::Num3) {
+                    choice = 3;
+                    break;
+                } else {
+                    errorText.setString("Invalid choice. Please press 1, 2, or 3.");
+                    window.clear();
+                    window.draw(menuText);
+                    window.draw(errorText);
+                    window.display();
+                }
             }
         }
-    }
 
     return choice;
 }
@@ -39,20 +52,16 @@ int getDifficultyChoice(sf::RenderWindow& window, sf::Font& font) {
 void setDifficulty(int choice, float& paddleSpeed, sf::Vector2f& ballVelocity) {
     switch (choice) {
     case 1: // Easy
-        paddleSpeed = 5.0f;
+        paddleSpeed = 6.0f;
         ballVelocity = sf::Vector2f(5.0f, 5.0f);
         break;
     case 2: // Medium
-        paddleSpeed = 7.0f;
+        paddleSpeed = 9.0f;
         ballVelocity = sf::Vector2f(7.0f, 7.0f);
         break;
     case 3: // Hard
-        paddleSpeed = 9.0f;
+        paddleSpeed = 12.0f;
         ballVelocity = sf::Vector2f(10.0f, 10.0f);
-        break;
-    default:
-        paddleSpeed = 7.0f; // Default to Medium if invalid choice
-        ballVelocity = sf::Vector2f(5.0f, 5.0f);
         break;
     }
 }
@@ -99,7 +108,7 @@ void setupSprites(sf::Sprite& paddle1Sprite, sf::Sprite& paddle2Sprite, sf::Spri
 
 // Function to handle events
 void handleEvents(sf::RenderWindow& window, bool& inMenu, bool& playing, bool& showHighScores, bool& ballPaused, bool& gamePaused, sf::Clock& gameClock, sf::Time& pausedTime) {
-    sf::Event event;
+    sf::Event event{};
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)) {
             window.close();
