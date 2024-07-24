@@ -190,6 +190,15 @@ void render(sf::RenderWindow& window, sf::Sprite& backgroundSprite, sf::Sprite& 
     window.draw(scoreText);
     window.draw(timeText);
 
+    //  instructions text
+    sf::Text pause_resume_text("Press P for Pause/Resume", font, 20);
+    pause_resume_text.setPosition(20, 50);
+    window.draw(pause_resume_text);
+
+    sf::Text quit_text("Press Esc to Quit", font, 20);
+    quit_text.setPosition(window.getSize().x - 200, 50);
+    window.draw(quit_text);
+
     if (gamePaused) {
         sf::Text pauseText("Game Paused", font, 50);
         pauseText.setPosition(window.getSize().x / 2 - 150, window.getSize().y / 2 - 50);
@@ -198,6 +207,7 @@ void render(sf::RenderWindow& window, sf::Sprite& backgroundSprite, sf::Sprite& 
 
     window.display();
 }
+
 
 
 
