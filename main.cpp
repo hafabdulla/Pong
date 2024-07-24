@@ -1,14 +1,64 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-
+#include <SFML/System.hpp>
 #include <iostream>
 
 #include <fstream>
 #include <sstream>
 #include <string>
 
+// Function to display difficulty menu and get user choice
+int getDifficultyChoice(sf::RenderWindow& window, sf::Font& font) {
+    sf::Text menuText("Select Difficulty:\n1. Easy\n2. Medium\n3. Hard", font, 30);
+    menuText.setPosition(100, 200);
+
+    window.clear();
+    window.draw(menuText);
+    window.display();
+
+    int choice = 0;
+    sf::Event event;
+    while (window.waitEvent(event)) {
+        if (event.type == sf::Event::KeyPressed) {
+            if (event.key.code == sf::Keyboard::Num1) {
+                choice = 1;
+                break;
+            } else if (event.key.code == sf::Keyboard::Num2) {
+                choice = 2;
+                break;
+            } else if (event.key.code == sf::Keyboard::Num3) {
+                choice = 3;
+                break;
+            }
+        }
+    }
+
+    return choice;
+}
+
+void setDifficulty(int choice, float& paddleSpeed, sf::Vector2f& ballVelocity) {
+    switch (choice) {
+    case 1: // Easy
+        paddleSpeed = 5.0f;
+        ballVelocity = sf::Vector2f(5.0f, 5.0f);
+        break;
+    case 2: // Medium
+        paddleSpeed = 7.0f;
+        ballVelocity = sf::Vector2f(7.0f, 7.0f);
+        break;
+    case 3: // Hard
+        paddleSpeed = 9.0f;
+        ballVelocity = sf::Vector2f(10.0f, 10.0f);
+        break;
+    default:
+        paddleSpeed = 7.0f; // Default to Medium if invalid choice
+        ballVelocity = sf::Vector2f(5.0f, 5.0f);
+        break;
+    }
+}
+
 // Function to setup the window
-void setupWindow(sf::RenderWindow& window) {
+void setupWindow(sf::RenderWindow & window) {
     window.setFramerateLimit(60); // 60 Frame / Sec
 }
 
@@ -273,13 +323,12 @@ int main() {
     bool gamePaused = false;
     bool ballPaused = true; // Ball starts in a paused state
 
-    const float PaddleSpeed = 7.0f;
     const float WindowHeight = 768, WindowWidth = 1000;
 
-    sf::Vector2f BallVelocity(5.0f, 5.0f); //Change in x and y axis.
 
     sf::RenderWindow window(sf::VideoMode(WindowWidth, WindowHeight), "Pong", sf::Style::Titlebar | sf::Style::Close);
     setupWindow(window);
+
 
     sf::Texture PaddleTexture, BallTexture, BackgroundTexture;
     loadTextures(PaddleTexture, BallTexture, BackgroundTexture);
@@ -293,6 +342,13 @@ int main() {
 
     std::string player1, player2;
     getPlayerNames(player1, player2, window, font);
+
+    int difficultyChoice = getDifficultyChoice(window, font);
+
+    // Set difficulty parameters
+    float paddleSpeed;
+    sf::Vector2f ballVelocity;
+    setDifficulty(difficultyChoice, paddleSpeed, ballVelocity);
 
     sf::Sprite paddle1Sprite, paddle2Sprite, ballSprite, backgroundSprite;
     setupSprites(paddle1Sprite, paddle2Sprite, ballSprite, backgroundSprite, PaddleTexture, BallTexture, BackgroundTexture, WindowHeight, WindowWidth);
@@ -327,8 +383,8 @@ int main() {
             }
         } else if (playing) {
             handleEvents(window, inMenu, playing, showHighScores, ballPaused, gamePaused, gameClock, pausedTime);
-            updatePaddles(paddle1Sprite, paddle2Sprite, PaddleSpeed, WindowHeight);
-            updateBall(ballSprite, BallVelocity, paddle1Sprite, paddle2Sprite, WindowWidth, WindowHeight, score1, score2, hitSound, ballPaused, gamePaused);
+            updatePaddles(paddle1Sprite, paddle2Sprite, paddleSpeed, WindowHeight);
+            updateBall(ballSprite, ballVelocity, paddle1Sprite, paddle2Sprite, WindowWidth, WindowHeight, score1, score2, hitSound, ballPaused, gamePaused);
             updateScoreText(scoreText, score1, score2, player1, player2);
 
             // time display
@@ -365,7 +421,7 @@ int main() {
             window.draw(winnerText);
             window.display();
 
-            sleep(sf::seconds(3)); // Show result for 3 seconds
+            sf::sleep(sf::seconds(3)); // Show result for 3 seconds
             saveHighScore(player1, score1);
             saveHighScore(player2, score2);
         }
