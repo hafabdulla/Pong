@@ -1,15 +1,10 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-/////////        C++ Standard I/O        /////
-#include <iostream>
-/////////        ////////////////       /////
-///
 
-///
-/////////        File Handling        /////
+#include <iostream>
+
 #include <fstream>
 #include <sstream>
-/////////        //////////////       /////
 #include <string>
 
 // Function to setup the window
@@ -32,40 +27,39 @@ void loadAudio(sf::Sound& hitSound, sf::SoundBuffer& hitBuffer) {
 
 // Function to setup sprites
 void setupSprites(sf::Sprite& paddle1Sprite, sf::Sprite& paddle2Sprite, sf::Sprite& ballSprite, sf::Sprite& backgroundSprite, sf::Texture& paddleTexture, sf::Texture& ballTexture, sf::Texture& backgroundTexture, float windowHeight, float windowWidth) {
-
-    // BakGround
+    // Background
     backgroundSprite.setTexture(backgroundTexture);
 
     // Paddles
     float Scaling_Factor = 0.3f;
     paddle1Sprite.setTexture(paddleTexture);
     paddle1Sprite.setScale(Scaling_Factor, Scaling_Factor);
-    paddle1Sprite.setPosition(50, (windowHeight - paddle1Sprite.getGlobalBounds().height) / 2 + 50);
+    paddle1Sprite.setPosition(50, (windowHeight - paddle1Sprite.getGlobalBounds().height) / 2 + 100);
 
     paddle2Sprite.setTexture(paddleTexture);
     paddle2Sprite.setScale(Scaling_Factor, Scaling_Factor);
-    paddle2Sprite.setPosition(windowWidth - 50 - paddle2Sprite.getGlobalBounds().width, (windowHeight - paddle2Sprite.getGlobalBounds().height) / 2 + 50);
-
+    paddle2Sprite.setPosition(windowWidth - 50 - paddle2Sprite.getGlobalBounds().width, (windowHeight - paddle2Sprite.getGlobalBounds().height) / 2 + 100);
 
     // Ball
     ballSprite.setTexture(ballTexture);
     ballSprite.setScale(Scaling_Factor, Scaling_Factor);
-    ballSprite.setPosition(windowWidth / 2, windowHeight / 2 + 50);
+    ballSprite.setPosition(windowWidth / 2, windowHeight / 2 + 70);
 }
 
+
 // Function to handle events
-void handleEvents(sf::RenderWindow& window, bool& inMenu, bool& playing, bool& showHighScores, bool& ballPaused) {
+void handleEvents(sf::RenderWindow& window, bool& inMenu, bool& playing, bool& showHighScores, bool& ballPaused, bool& gamePaused, sf::Clock& gameClock, sf::Time& pausedTime) {
     sf::Event event;
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed || (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape)) {
-            window.close(); // Close the Window
+            window.close();
         }
 
-        // Game States
         if (inMenu && event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::Num1) {
                 playing = true;
                 inMenu = false;
+                gameClock.restart(); // Starts the clock from 0
             } else if (event.key.code == sf::Keyboard::Num2) {
                 showHighScores = true;
                 inMenu = false;
@@ -74,24 +68,33 @@ void handleEvents(sf::RenderWindow& window, bool& inMenu, bool& playing, bool& s
             }
         }
 
-        // Pause/Resume Ball
         if (playing && event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
             ballPaused = !ballPaused;
+        }
+
+        if (playing && event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::P) {
+            gamePaused = !gamePaused;
+            if (gamePaused) {
+                pausedTime = gameClock.getElapsedTime();
+            } else {
+                gameClock.restart();
+            }
         }
     }
 }
 
 
+
 // Function to update paddle positions
 void updatePaddles(sf::Sprite& paddle1Sprite, sf::Sprite& paddle2Sprite, float paddleSpeed, float windowHeight) {
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && paddle1Sprite.getPosition().y > 55) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) && paddle1Sprite.getPosition().y > 105) {
         paddle1Sprite.move(0, -paddleSpeed);
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) && paddle1Sprite.getPosition().y + paddle1Sprite.getGlobalBounds().height < windowHeight) {
         paddle1Sprite.move(0, paddleSpeed);
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && paddle2Sprite.getPosition().y > 55) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && paddle2Sprite.getPosition().y > 105) {
         paddle2Sprite.move(0, -paddleSpeed);
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && paddle2Sprite.getPosition().y + paddle2Sprite.getGlobalBounds().height < windowHeight) {
@@ -100,11 +103,11 @@ void updatePaddles(sf::Sprite& paddle1Sprite, sf::Sprite& paddle2Sprite, float p
 }
 
 // Function to update ball position and handle collisions
-void updateBall(sf::Sprite& ballSprite, sf::Vector2f& ballVelocity, sf::Sprite& paddle1Sprite, sf::Sprite& paddle2Sprite, float windowWidth, float windowHeight, int& score1, int& score2, sf::Sound& hitSound, bool ballPaused) {
-    if (!ballPaused) {
+void updateBall(sf::Sprite& ballSprite, sf::Vector2f& ballVelocity, sf::Sprite& paddle1Sprite, sf::Sprite& paddle2Sprite, float windowWidth, float windowHeight, int& score1, int& score2, sf::Sound& hitSound, bool ballPaused, bool gamePaused) {
+    if (!ballPaused && !gamePaused) {
         ballSprite.move(ballVelocity);
 
-        if (ballSprite.getPosition().y <= 50 || ballSprite.getPosition().y + ballSprite.getGlobalBounds().height >= windowHeight) {
+        if (ballSprite.getPosition().y <= 105 || ballSprite.getPosition().y + ballSprite.getGlobalBounds().height >= windowHeight) {
             ballVelocity.y = -ballVelocity.y;
             hitSound.play();
         }
@@ -127,8 +130,7 @@ void updateBall(sf::Sprite& ballSprite, sf::Vector2f& ballVelocity, sf::Sprite& 
 
 
 // Function to render game objects
-void render(sf::RenderWindow& window, sf::Sprite& backgroundSprite, sf::Sprite& paddle1Sprite, sf::Sprite& paddle2Sprite,
-            sf::Sprite& ballSprite, sf::Text& scoreText, sf::RectangleShape& boundary) {
+void render(sf::RenderWindow& window, sf::Sprite& backgroundSprite, sf::Sprite& paddle1Sprite, sf::Sprite& paddle2Sprite, sf::Sprite& ballSprite, sf::Text& scoreText, sf::RectangleShape& boundary, sf::Text& timeText, bool gamePaused, sf::Font & font) {
     window.clear();
     window.draw(backgroundSprite);
     window.draw(boundary);
@@ -136,8 +138,18 @@ void render(sf::RenderWindow& window, sf::Sprite& backgroundSprite, sf::Sprite& 
     window.draw(paddle2Sprite);
     window.draw(ballSprite);
     window.draw(scoreText);
+    window.draw(timeText);
+
+    if (gamePaused) {
+        sf::Text pauseText("Game Paused", font, 50);
+        pauseText.setPosition(window.getSize().x / 2 - 150, window.getSize().y / 2 - 50);
+        window.draw(pauseText);
+    }
+
     window.display();
 }
+
+
 
 // Function to get player names
 void getPlayerNames(std::string& player1, std::string& player2, sf::RenderWindow& window, sf::Font& font) {
@@ -155,13 +167,13 @@ void getPlayerNames(std::string& player1, std::string& player2, sf::RenderWindow
     bool input1Complete = false, input2Complete = false;
 
     while (window.isOpen() && !(input1Complete && input2Complete)) {
-        sf::Event event;
+        sf::Event event{};
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
             if (event.type == sf::Event::TextEntered) {
-                if (event.text.unicode < 128) {
+                if (event.text.unicode < 128) { // Only ASCII
                     if (!input1Complete) {
                         if (event.text.unicode == '\n' || event.text.unicode == '\r') {
                             input1Complete = true;
@@ -204,7 +216,7 @@ void saveHighScore(const std::string& player, int score) {
 
 // Function to update score text
 void updateScoreText(sf::Text& scoreText, int score1, int score2, const std::string& player1, const std::string& player2) {
-    std::ostringstream scoreStream;
+    std::stringstream scoreStream;
     scoreStream << player1 << " " << score1 << " : " << score2 << " " << player2;
     scoreText.setString(scoreStream.str());
 }
@@ -230,7 +242,7 @@ void displayHighScores(sf::RenderWindow& window, sf::Font& font) {
     int maxScore = 0;
 
     while (std::getline(file, line)) {
-        std::istringstream iss(line);
+        std::stringstream iss(line);
         std::string playerName;
         int score;
         iss >> playerName >> score;
@@ -248,8 +260,8 @@ void displayHighScores(sf::RenderWindow& window, sf::Font& font) {
     window.draw(scoreText);
     window.display();
 
-    // Wait for any key to close the high scores screen
-    sf::Event event;
+    // If any key is prssed, it closes the high scores screen
+    sf::Event event{};
     while (window.waitEvent(event)) {
         if (event.type == sf::Event::KeyPressed) {
             break;
@@ -257,13 +269,15 @@ void displayHighScores(sf::RenderWindow& window, sf::Font& font) {
     }
 }
 
-int main()
-{
+int main() {
+    bool gamePaused = false;
     bool ballPaused = true; // Ball starts in a paused state
 
     const float PaddleSpeed = 7.0f;
     const float WindowHeight = 768, WindowWidth = 1000;
-    sf::Vector2f BallVelocity(5.0f, 5.0f);
+
+    sf::Vector2f BallVelocity(5.0f, 5.0f); //Change in x and y axis.
+
     sf::RenderWindow window(sf::VideoMode(WindowWidth, WindowHeight), "Pong", sf::Style::Titlebar | sf::Style::Close);
     setupWindow(window);
 
@@ -275,7 +289,7 @@ int main()
     loadAudio(hitSound, hitBuffer);
 
     sf::Font font;
-    font.loadFromFile("resources/arial.ttf");
+    font.loadFromFile("resources/trebuc.ttf");
 
     std::string player1, player2;
     getPlayerNames(player1, player2, window, font);
@@ -285,35 +299,83 @@ int main()
 
     sf::Text scoreText("", font, 30);
     scoreText.setPosition(WindowWidth / 2 - 100, 20);
+
     int score1 = 0, score2 = 0;
 
-    sf::RectangleShape boundary(sf::Vector2f(WindowWidth, 50));
+    sf::RectangleShape boundary(sf::Vector2f(WindowWidth, 100)); // The upper horizontal Boundary
     boundary.setFillColor(sf::Color::Black);
 
+    //State
     bool inMenu = true;
     bool playing = false;
     bool showHighScores = false;
 
+    // clock to measure the elapsed time
+    sf::Clock gameClock;
+    sf::Time gameTime = sf::seconds(60); // game duration = 60 seconds
+    sf::Time pausedTime = sf::Time::Zero;
+
+    sf::Text timeText("", font, 30);
+    timeText.setPosition(WindowWidth / 2 - 50, 60);
+
     while (window.isOpen()) {
         if (inMenu) {
             displayMenu(window, font);
-            handleEvents(window, inMenu, playing, showHighScores, ballPaused);
+            handleEvents(window, inMenu, playing, showHighScores, ballPaused, gamePaused, gameClock, pausedTime);
+            if (playing && !gamePaused) {
+                gameClock.restart(); // Ensures that the clock starts only when the game has started and WE ARE NO MORE IN THE MENU
+            }
         } else if (playing) {
-            handleEvents(window, inMenu, playing, showHighScores, ballPaused);
+            handleEvents(window, inMenu, playing, showHighScores, ballPaused, gamePaused, gameClock, pausedTime);
             updatePaddles(paddle1Sprite, paddle2Sprite, PaddleSpeed, WindowHeight);
-            updateBall(ballSprite, BallVelocity, paddle1Sprite, paddle2Sprite, WindowWidth, WindowHeight, score1, score2, hitSound, ballPaused);
+            updateBall(ballSprite, BallVelocity, paddle1Sprite, paddle2Sprite, WindowWidth, WindowHeight, score1, score2, hitSound, ballPaused, gamePaused);
             updateScoreText(scoreText, score1, score2, player1, player2);
-            render(window, backgroundSprite, paddle1Sprite, paddle2Sprite, ballSprite, scoreText, boundary);
-        } else if (showHighScores) {
-            displayHighScores(window, font);
-            inMenu = true;
-            showHighScores = false;
+
+            // time display
+            sf::Time elapsed;
+            if (gamePaused) {
+                elapsed = pausedTime;
+            } else {
+                elapsed = pausedTime + gameClock.getElapsedTime();
+            }
+            std::stringstream timeStream;
+            timeStream << "Time: " << static_cast<int>(elapsed.asSeconds());
+            timeText.setString(timeStream.str());
+
+            render(window, backgroundSprite, paddle1Sprite, paddle2Sprite, ballSprite, scoreText, boundary, timeText, gamePaused, font);
+
+            // Checks if one minute has passed
+            if (elapsed >= gameTime) {
+                playing = false;
+                inMenu = true;
+
+                // Determines winner
+                std::string winner;
+                if (score1 > score2) {
+                    winner = player1 + " wins!";
+            } else if (score2 > score1) {
+                winner = player2 + " wins!";
+            } else {
+                winner = "It's a tie!";
+            }
+
+            sf::Text winnerText(winner, font, 50);
+            winnerText.setPosition(WindowWidth / 2 - 150, WindowHeight / 2);
+            window.clear();
+            window.draw(winnerText);
+            window.display();
+
+            sleep(sf::seconds(3)); // Show result for 3 seconds
+            saveHighScore(player1, score1);
+            saveHighScore(player2, score2);
         }
+    } else if (showHighScores) {
+        displayHighScores(window, font);
+        inMenu = true;
+        showHighScores = false;
     }
+}
 
-
-    saveHighScore(player1, score1);
-    saveHighScore(player2, score2);
 
     return 0;
 }
