@@ -18,7 +18,7 @@ This is a simple implementation of the classic Pong game using C++ and SFML (Sim
 
 ## Contributing
 
-- If you have suggestions for improvements, find any bugs, or would like to contribute to the project, feel free to:
+If you have suggestions for improvements, find any bugs, or would like to contribute to the project, feel free to:
 
 - Submit an issue: Report bugs or suggest new features by opening an issue.
 - Submit a pull request: If you'd like to contribute code, please fork the repository and submit a pull request with your changes.
