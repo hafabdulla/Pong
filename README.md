@@ -4,11 +4,10 @@ This is a simple implementation of the classic Pong game using C++ and SFML (Sim
 
 ## Features
 
-
-- **Two-player mode**: Play against a friend using two paddles.
-- **Pause functionality**: Pause the game and resume at any time.
-- **Scoring system**: Tracks and displays scores for both players.
-- **High score tracking**: Saves and displays high scores.
+- **Two-player mode**
+- **Pause functionality**
+- **Scoring system**
+- **High score tracking**
 
 ## Controls
 
@@ -18,10 +17,10 @@ This is a simple implementation of the classic Pong game using C++ and SFML (Sim
 
 ## Contributing
 
-If you have suggestions for improvements, find any bugs, or would like to contribute to the project, feel free to:
+If you have suggestions for improvements, find any bugs, or would like to contribute to the project, to contribute by:
 
-- Submit an issue: Report bugs or suggest new features by opening an issue.
-- Submit a pull request: If you'd like to contribute code, please fork the repository and submit a pull request with your changes.
+- Submitting issues for bugs or feature requests.
+- Forking the repo and creating pull requests.
 
 
 ### Note
